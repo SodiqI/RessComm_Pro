@@ -1,0 +1,815 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZULIM - Zonation of Land Use Intensification Management</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            height: 100vh;
+            overflow: hidden;
+            background: #f7f9fb;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, #1b4332, #2d5a3d);
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #a7d1a7;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: #d4edd4;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #74c774;
+        }
+
+        /* Main Container */
+        .container {
+            display: flex;
+            height: calc(100vh - 64px);
+            flex-direction: row;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 400px;
+            min-width: 400px;
+            background: white;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-section {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .sidebar-section h3 {
+            color: #1b4332;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Upload Area */
+        .upload-area {
+            border: 2px dashed #40916c;
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f0fdf4;
+        }
+
+        .upload-area:hover {
+            background: #d8f3dc;
+            border-color: #2d5a3d;
+        }
+
+        .upload-area i {
+            font-size: 3rem;
+            color: #40916c;
+            margin-bottom: 1rem;
+        }
+
+        .upload-area input[type="file"] {
+            display: none;
+        }
+
+        /* Form Controls */
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #2d5a3d;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .form-group select,
+        .form-group input[type="text"],
+        .form-group input[type="number"] {
+            width: 100%;
+            padding: 0.6rem;
+            border: 1px solid #b7e4c7;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            background: #f0fdf4;
+        }
+
+        .form-group select:focus,
+        .form-group input:focus {
+            outline: none;
+            border-color: #40916c;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.95rem;
+        }
+
+        .btn-primary {
+            background: #40916c;
+            color: white;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .btn-primary:hover {
+            background: #2d5a3d;
+            transform: translateY(-2px);
+        }
+
+        .btn-primary:disabled {
+            background: #b7e4c7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #95d5b2;
+            color: #1b4332;
+            margin-top: 0.5rem;
+        }
+
+        .btn-secondary:hover {
+            background: #74c69d;
+        }
+
+        /* Advanced Toggle */
+        .advanced-toggle {
+            background: #e8f5e8;
+            padding: 0.6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .advanced-toggle:hover {
+            background: #d4edd4;
+        }
+
+        .advanced-panel {
+            display: none;
+            padding-top: 1rem;
+        }
+
+        .advanced-panel.active {
+            display: block;
+        }
+
+        /* Dataset Summary */
+        .dataset-summary {
+            background: #f0fdf4;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .dataset-summary p {
+            margin-bottom: 0.5rem;
+            color: #2d5a3d;
+        }
+
+        /* Progress */
+        .progress-container {
+            display: none;
+            margin-top: 1rem;
+        }
+
+        .progress-container.active {
+            display: block;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #40916c, #52b788);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .progress-text {
+            font-size: 0.85rem;
+            color: #2d5a3d;
+            text-align: center;
+        }
+
+        /* Map Container */
+        .map-container {
+            flex: 1;
+            position: relative;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Map Controls */
+        .map-toolbar {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .map-control {
+            background: white;
+            padding: 0.6rem;
+            border-radius: 4px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .map-control:hover {
+            background: #f0fdf4;
+            transform: scale(1.05);
+        }
+
+        .coordinates-display {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: white;
+            padding: 0.8rem;
+            border-radius: 4px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            font-size: 0.85rem;
+            z-index: 1000;
+        }
+
+        .opacity-control {
+            position: absolute;
+            bottom: 30px;
+            right: 10px;
+            background: white;
+            padding: 1rem;
+            border-radius: 4px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            min-width: 200px;
+        }
+
+        .opacity-control input[type="range"] {
+            width: 100%;
+        }
+
+        /* Legend */
+        .legend {
+            position: absolute;
+            bottom: 30px;
+            left: 10px;
+            background: white;
+            padding: 1rem;
+            border-radius: 4px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            max-width: 250px;
+        }
+
+        .legend h4 {
+            margin-bottom: 0.5rem;
+            color: #1b4332;
+            font-size: 0.9rem;
+        }
+
+        .legend-gradient {
+            height: 20px;
+            background: linear-gradient(to right, #440154, #31688e, #35b779, #fde724);
+            border-radius: 3px;
+            margin-bottom: 0.5rem;
+        }
+
+        .legend-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: #666;
+        }
+
+        /* Metrics Panel */
+        .metrics-panel {
+            display: none;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            z-index: 1001;
+            max-width: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .metrics-panel.active {
+            display: block;
+        }
+
+        .metrics-panel h3 {
+            color: #1b4332;
+            margin-bottom: 1rem;
+        }
+
+        .metrics-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1rem;
+        }
+
+        .metrics-table th,
+        .metrics-table td {
+            padding: 0.5rem;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .metrics-table th {
+            background: #f0fdf4;
+            color: #1b4332;
+            font-weight: 600;
+        }
+
+        .close-metrics {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+
+        /* Tooltip */
+        .tooltip-icon {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            background: #40916c;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 16px;
+            font-size: 0.7rem;
+            cursor: help;
+            margin-left: 0.3rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .sidebar {
+                width: 350px;
+                min-width: 350px;
+            }
+
+            .coordinates-display {
+                font-size: 0.75rem;
+            }
+        }
+        
+        @media (max-width: 900px) {
+            .sidebar {
+                width: 300px;
+                min-width: 300px;
+            }
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            border-radius: 6px;
+            color: white;
+            z-index: 2000;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .notification.success {
+            background: #52b788;
+        }
+
+        .notification.error {
+            background: #e74c3c;
+        }
+
+        .notification.warning {
+            background: #f39c12;
+        }
+
+        .notification.active {
+            display: block;
+            animation: slideIn 0.3s;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">ZULIM - RessComm Plotter</div>
+        <nav>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="manual-plotter.html">Manual Plotter</a></li>
+                <li><a href="excel-plotter.html">Excel Plotter</a></li>
+                <li><a href="zulim.html" style="color: #74c774;">ZULIM</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <!-- Upload Section -->
+            <div class="sidebar-section">
+                <h3><i class="fas fa-upload"></i> Upload Dataset</h3>
+                <div class="upload-area" id="upload-area">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p><strong>Drag & drop files here</strong></p>
+                    <p style="font-size: 0.85rem; color: #666; margin-top: 0.5rem;">
+                        or click to browse<br>
+                        <small>Supported: CSV, GeoJSON, Shapefile (.zip)</small>
+                    </p>
+                    <input type="file" id="file-input" accept=".csv,.geojson,.json,.zip">
+                </div>
+
+                <div id="dataset-summary" class="dataset-summary" style="display: none;">
+                    <p><strong>Dataset Loaded</strong></p>
+                    <p id="row-count">Rows: -</p>
+                    <p id="crs-info">CRS: -</p>
+                    <p id="fields-detected">Fields: -</p>
+                </div>
+
+                <button class="btn btn-secondary" id="load-demo-btn" style="width: 100%; margin-top: 1rem;">
+                    <i class="fas fa-database"></i> Load Demo Data
+                </button>
+            </div>
+
+            <!-- Variable Selection -->
+            <div class="sidebar-section">
+                <h3><i class="fas fa-bullseye"></i> Variables</h3>
+                <div class="form-group">
+                    <label>Target Variable <span class="tooltip-icon" title="The variable you want to interpolate">?</span></label>
+                    <select id="target-variable">
+                        <option value="">Select target variable</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <div class="checkbox-group" style="margin-bottom: 0.5rem;">
+                        <input type="checkbox" id="use-predictors">
+                        <label for="use-predictors"><strong>Use Predictor Variables</strong> <span class="tooltip-icon" title="Enable to add additional variables that may improve prediction accuracy">?</span></label>
+                    </div>
+                    <div id="predictor-selection" style="display: none; margin-top: 0.5rem; padding: 0.5rem; background: #f0fdf4; border-radius: 4px;">
+                        <label style="margin-bottom: 0.5rem; display: block;">Select predictor variables:</label>
+                        <div id="predictor-checkboxes" style="max-height: 150px; overflow-y: auto;">
+                            <!-- Predictor checkboxes will be added here dynamically -->
+                        </div>
+                        <small style="color: #666; font-size: 0.75rem; display: block; margin-top: 0.5rem;">Select one or more variables to improve interpolation</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Algorithm Selection -->
+            <div class="sidebar-section">
+                <h3><i class="fas fa-brain"></i> Algorithm</h3>
+                <div class="form-group">
+                    <label>Interpolation Method</label>
+                    <select id="algorithm">
+                        <option value="idw">Inverse Distance Weighting (IDW)</option>
+                        <option value="rf" selected>Random Forest</option>
+                        <option value="svr">Support Vector Regression</option>
+                        <option value="kriging">Ordinary Kriging</option>
+                        <option value="regression-kriging">Regression-Kriging</option>
+                    </select>
+                </div>
+
+                <div class="advanced-toggle" id="advanced-toggle">
+                    <span><i class="fas fa-cog"></i> Advanced Parameters</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="advanced-panel" id="advanced-panel">
+                    <div class="form-group">
+                        <label>Number of Trees (RF)</label>
+                        <input type="number" id="n-trees" value="100" min="10" max="500">
+                    </div>
+                    <div class="form-group">
+                        <label>IDW Power</label>
+                        <input type="number" id="idw-power" value="2" min="1" max="5" step="0.1">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grid & Extent -->
+            <div class="sidebar-section">
+                <h3><i class="fas fa-border-all"></i> Grid & Extent</h3>
+                <div class="form-group">
+                    <label>Cell Size (meters)</label>
+                    <input type="number" id="cell-size" value="100" min="10" max="10000">
+                </div>
+                <div class="form-group">
+                    <label>Extent</label>
+                    <select id="extent-type">
+                        <option value="auto">Auto (from data)</option>
+                        <option value="manual">Manual BBox</option>
+                        <option value="draw">Draw on map</option>
+                        <option value="upload">Upload Shapefile/KMZ</option>
+                    </select>
+                </div>
+                <div class="form-group" id="extent-upload-area" style="display: none;">
+                    <label>Upload Extent File</label>
+                    <input type="file" id="extent-file" accept=".shp,.zip,.kmz,.kml" style="font-size: 0.85rem;">
+                    <small style="color: #666; font-size: 0.75rem;">Shapefile (.zip), KMZ, or KML</small>
+                </div>
+            </div>
+
+            <!-- Cross-Validation -->
+            <div class="sidebar-section">
+                <h3><i class="fas fa-chart-line"></i> Validation</h3>
+                <div class="form-group">
+                    <label>Cross-Validation Folds (k)</label>
+                    <input type="number" id="cv-folds" value="5" min="2" max="10">
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="spatial-cv">
+                    <label for="spatial-cv">Use Spatial Block CV <span class="tooltip-icon" title="Recommended to avoid spatial leakage">?</span></label>
+                </div>
+            </div>
+
+            <!-- Output Options -->
+            <div class="sidebar-section">
+                <h3><i class="fas fa-layer-group"></i> Output Layers</h3>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="output-continuous" checked>
+                    <label for="output-continuous">Continuous Raster</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="output-classified">
+                    <label for="output-classified">Classified Raster</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="output-contours">
+                    <label for="output-contours">Contour Lines</label>
+                </div>
+
+                <div class="form-group" style="margin-top: 1rem;">
+                    <label>Color Scheme</label>
+                    <select id="color-scheme">
+                        <option value="viridis">Viridis (Blue-Green-Yellow)</option>
+                        <option value="plasma">Plasma (Purple-Orange)</option>
+                        <option value="coolwarm">Cool-Warm (Blue-Red)</option>
+                        <option value="greens">Greens</option>
+                        <option value="reds">Reds</option>
+                        <option value="blues">Blues</option>
+                        <option value="rainbow">Rainbow</option>
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-top: 1rem;">
+                    <label>Number of Classes</label>
+                    <input type="number" id="num-classes" value="5" min="2" max="10">
+                </div>
+                <div class="form-group">
+                    <label>Classification Method</label>
+                    <select id="class-method">
+                        <option value="equal">Equal Interval</option>
+                        <option value="quantile">Quantiles</option>
+                        <option value="jenks">Natural Breaks (Jenks)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Run & Export -->
+            <div class="sidebar-section">
+                <button class="btn btn-primary" id="run-btn" disabled>
+                    <i class="fas fa-play"></i> Run Analysis
+                </button>
+
+                <div class="progress-container" id="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                    <div class="progress-text" id="progress-text">Processing...</div>
+                </div>
+            </div>
+
+            <!-- Export Options -->
+            <div class="sidebar-section" id="export-section" style="display: none;">
+                <h3><i class="fas fa-download"></i> Export Results</h3>
+                <div class="form-group">
+                    <label>Export Format</label>
+                    <select id="export-format">
+                        <option value="geotiff">GeoTIFF Raster</option>
+                        <option value="kmz">KMZ (Google Earth)</option>
+                        <option value="shapefile">Shapefile (ZIP)</option>
+                        <option value="geojson">GeoJSON</option>
+                        <option value="csv">CSV Grid</option>
+                        <option value="pdf">PDF Report</option>
+                    </select>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="export-metrics" checked>
+                    <label for="export-metrics">Include Validation Metrics</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="export-legend" checked>
+                    <label for="export-legend">Include Legend</label>
+                </div>
+                <button class="btn btn-primary" id="export-btn">
+                    <i class="fas fa-download"></i> Export Now
+                </button>
+            </div>
+
+            <!-- Layer Controls -->
+            <div class="sidebar-section" id="layer-controls-section" style="display: none;">
+                <h3><i class="fas fa-eye"></i> Layer Visibility</h3>
+                <div id="layer-controls">
+                    <!-- Layer toggles will be dynamically added here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Map Container -->
+        <div class="map-container">
+            <div id="map"></div>
+
+            <!-- Map Toolbar -->
+            <div class="map-toolbar">
+                <div class="map-control" title="Toggle Layers" id="layer-toggle">
+                    <i class="fas fa-layer-group"></i>
+                </div>
+                <div class="map-control" title="View Metrics" id="metrics-toggle">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <div class="map-control" title="Toggle Legend" id="legend-toggle">
+                    <i class="fas fa-palette"></i>
+                </div>
+            </div>
+
+            <!-- Coordinates Display -->
+            <div class="coordinates-display" id="coordinates-display">
+                <div><strong>Coordinates</strong></div>
+                <div id="coord-lat">Lat: -</div>
+                <div id="coord-lng">Lng: -</div>
+                <div id="coord-zoom">Zoom: -</div>
+            </div>
+
+            <!-- Opacity Control -->
+            <div class="opacity-control" id="opacity-control" style="display: none;">
+                <label><strong>Layer Opacity</strong></label>
+                <input type="range" id="opacity-slider" min="0" max="100" value="70">
+                <div style="text-align: center; margin-top: 0.5rem;">
+                    <span id="opacity-value">70%</span>
+                </div>
+            </div>
+
+            <!-- Legend -->
+            <div class="legend" id="legend" style="display: none;">
+                <h4>Prediction Values</h4>
+                <div class="legend-gradient"></div>
+                <div class="legend-labels">
+                    <span id="legend-min">0</span>
+                    <span id="legend-max">100</span>
+                </div>
+            </div>
+
+            <!-- Metrics Panel -->
+            <div class="metrics-panel" id="metrics-panel">
+                <button class="close-metrics" id="close-metrics">&times;</button>
+                <h3>Validation Metrics</h3>
+                <table class="metrics-table">
+                    <thead>
+                        <tr>
+                            <th>Metric</th>
+                            <th>Value</th>
+                        </tr>
+                    </thead>
+                    <tbody id="metrics-body">
+                        <tr>
+                            <td>RMSE</td>
+                            <td id="metric-rmse">-</td>
+                        </tr>
+                        <tr>
+                            <td>MAE</td>
+                            <td id="metric-mae">-</td>
+                        </tr>
+                        <tr>
+                            <td>R²</td>
+                            <td id="metric-r2">-</td>
+                        </tr>
+                        <tr>
+                            <td>Bias</td>
+                            <td id="metric-bias">-</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div id="cv-folds-info">
+                    <h4>Cross-Validation Results</h4>
+                    <p style="font-size: 0.85rem; color: #666;">Fold results will appear here after analysis</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification"></div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="zulim.js"></script>
+</body>
+</html>

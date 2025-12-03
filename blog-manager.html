@@ -1,0 +1,569 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RessComm Blog Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #2d5a27, #4a7c59);
+            color: white;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        h1 {
+            color: #a8d5a3;
+            margin-bottom: 0.5rem;
+        }
+
+        h2 {
+            color: #a8d5a3;
+            margin-bottom: 1rem;
+            font-size: 1.4rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #e8f5e8;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1rem;
+        }
+
+        input::placeholder, textarea::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        textarea {
+            min-height: 200px;
+            resize: vertical;
+            font-family: 'Courier New', monospace;
+        }
+
+        button {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 0.5rem 0.5rem 0.5rem 0;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #4a7c59;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #3d6b4a;
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #219a52;
+        }
+
+        .btn-warning {
+            background: #f39c12;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #e67e22;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .blog-list {
+            max-height: 500px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .blog-item {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid #4a7c59;
+        }
+
+        .blog-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .blog-stats {
+            font-size: 0.9rem;
+            color: #a8d5a3;
+        }
+
+        .blog-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .preview-panel {
+            background: white;
+            color: black;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-top: 1rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #a8d5a3;
+            display: block;
+        }
+
+        .logout-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: #e74c3c;
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        #htmlEditor {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            background: rgba(0, 0, 0, 0.3);
+            color: #a8d5a3;
+        }
+    </style>
+</head>
+<body>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+    
+    <div class="header">
+        <h1>RessComm Blog Manager</h1>
+        <p>Manage blog posts and monitor engagement statistics</p>
+    </div>
+
+    <div class="container">
+        <!-- Blog Editor Panel -->
+        <div class="panel">
+            <h2>Create/Edit Blog Post</h2>
+            
+            <div class="form-group">
+                <label for="blogTitle">Blog Title</label>
+                <input type="text" id="blogTitle" placeholder="Enter blog title">
+            </div>
+
+            <div class="form-group">
+                <label for="blogCategory">Category</label>
+                <select id="blogCategory">
+                    <option value="land-management">Land Management</option>
+                    <option value="climate-change">Climate Change</option>
+                    <option value="agriculture">Agriculture</option>
+                    <option value="technology">Technology</option>
+                    <option value="research">Research</option>
+                    <option value="community">Community</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="blogAuthor">Author</label>
+                <input type="text" id="blogAuthor" placeholder="Author name">
+            </div>
+
+            <div class="form-group">
+                <label for="htmlEditor">HTML Content</label>
+                <textarea id="htmlEditor" placeholder="Enter HTML content here...">&lt;h3&gt;Sample Blog Post&lt;/h3&gt;
+&lt;p&gt;Write your blog content here using HTML tags.&lt;/p&gt;
+&lt;p&gt;You can include:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;Lists&lt;/li&gt;
+  &lt;li&gt;Links: &lt;a href="#"&gt;example link&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;Images: &lt;img src="image.jpg" alt="description"&gt;&lt;/li&gt;
+&lt;/ul&gt;</textarea>
+            </div>
+
+            <div class="form-group">
+                <button class="btn-primary" onclick="previewBlog()">Preview</button>
+                <button class="btn-success" onclick="saveBlog()">Save Blog</button>
+                <button class="btn-warning" onclick="clearEditor()">Clear</button>
+            </div>
+
+            <div id="previewPanel" class="preview-panel" style="display: none;">
+                <h3>Preview</h3>
+                <div id="previewContent"></div>
+            </div>
+        </div>
+
+        <!-- Blog Management Panel -->
+        <div class="panel">
+            <h2>Published Blogs</h2>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span class="stat-number" id="totalBlogs">0</span>
+                    <span>Total Blogs</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number" id="totalViews">0</span>
+                    <span>Total Views</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number" id="totalReads">0</span>
+                    <span>Total Reads</span>
+                </div>
+            </div>
+
+            <div class="blog-list" id="blogList">
+                <!-- Blogs will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Blog management system
+        let blogs = JSON.parse(localStorage.getItem('resscommBlogs')) || [];
+        let currentEditId = null;
+
+        // Load blogs on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadBlogs();
+            updateStats();
+        });
+
+        function previewBlog() {
+            const content = document.getElementById('htmlEditor').value;
+            const previewPanel = document.getElementById('previewPanel');
+            const previewContent = document.getElementById('previewContent');
+            
+            previewContent.innerHTML = content;
+            previewPanel.style.display = 'block';
+        }
+
+        function saveBlog() {
+            const title = document.getElementById('blogTitle').value.trim();
+            const category = document.getElementById('blogCategory').value;
+            const author = document.getElementById('blogAuthor').value.trim() || 'RessComm Team';
+            const content = document.getElementById('htmlEditor').value.trim();
+
+            if (!title || !content) {
+                alert('Please fill in title and content');
+                return;
+            }
+
+            const blog = {
+                id: currentEditId || Date.now().toString(),
+                title: title,
+                category: category,
+                author: author,
+                content: content,
+                dateCreated: currentEditId ? blogs.find(b => b.id === currentEditId).dateCreated : new Date().toISOString(),
+                dateModified: new Date().toISOString(),
+                views: currentEditId ? blogs.find(b => b.id === currentEditId).views : 0,
+                reads: currentEditId ? blogs.find(b => b.id === currentEditId).reads : 0
+            };
+
+            if (currentEditId) {
+                const index = blogs.findIndex(b => b.id === currentEditId);
+                blogs[index] = blog;
+                currentEditId = null;
+            } else {
+                blogs.push(blog);
+            }
+
+            localStorage.setItem('resscommBlogs', JSON.stringify(blogs));
+            
+            // Create HTML file
+            createBlogFile(blog);
+            
+            clearEditor();
+            loadBlogs();
+            updateStats();
+            
+            alert('Blog saved successfully!');
+        }
+
+        function createBlogFile(blog) {
+            const htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${blog.title} - RessComm Blog</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #2d5a27, #4a7c59);
+            color: white;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+        }
+        .content {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+        }
+        h1 { color: #a8d5a3; margin-bottom: 1rem; }
+        h2, h3, h4 { color: #a8d5a3; margin: 1rem 0; }
+        p { margin-bottom: 1rem; }
+        a { color: #a8d5a3; }
+        .meta { color: #a8d5a3; font-size: 0.9rem; margin-bottom: 1rem; }
+        .back-btn {
+            display: inline-block;
+            background: #4a7c59;
+            color: white;
+            padding: 0.5rem 1rem;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body onload="trackView()">
+    <div class="container">
+        <a href="index.html" class="back-btn">← Back to Home</a>
+        <div class="header">
+            <h1>${blog.title}</h1>
+            <div class="meta">
+                By ${blog.author} | ${blog.category} | ${new Date(blog.dateCreated).toLocaleDateString()} | Views: <span id="viewCount">${blog.views}</span>
+            </div>
+        </div>
+        <div class="content">
+            ${blog.content}
+        </div>
+    </div>
+    
+    <script>
+        function trackView() {
+            // Increment view count
+            const blogs = JSON.parse(localStorage.getItem('resscommBlogs')) || [];
+            const blog = blogs.find(b => b.id === '${blog.id}');
+            if (blog) {
+                blog.views++;
+                localStorage.setItem('resscommBlogs', JSON.stringify(blogs));
+                document.getElementById('viewCount').textContent = blog.views;
+            }
+        }
+        
+        // Track read time (if user stays more than 30 seconds)
+        setTimeout(() => {
+            const blogs = JSON.parse(localStorage.getItem('resscommBlogs')) || [];
+            const blog = blogs.find(b => b.id === '${blog.id}');
+            if (blog) {
+                blog.reads++;
+                localStorage.setItem('resscommBlogs', JSON.stringify(blogs));
+            }
+        }, 30000);
+    </script>
+</body>
+</html>`;
+
+            // Store HTML content for download
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `blog-${blog.id}.html`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function editBlog(id) {
+            const blog = blogs.find(b => b.id === id);
+            if (!blog) return;
+
+            currentEditId = id;
+            document.getElementById('blogTitle').value = blog.title;
+            document.getElementById('blogCategory').value = blog.category;
+            document.getElementById('blogAuthor').value = blog.author;
+            document.getElementById('htmlEditor').value = blog.content;
+
+            document.querySelector('.panel h2').textContent = 'Edit Blog Post';
+        }
+
+        function deleteBlog(id) {
+            if (!confirm('Are you sure you want to delete this blog?')) return;
+
+            blogs = blogs.filter(b => b.id !== id);
+            localStorage.setItem('resscommBlogs', JSON.stringify(blogs));
+            
+            loadBlogs();
+            updateStats();
+        }
+
+        function clearEditor() {
+            currentEditId = null;
+            document.getElementById('blogTitle').value = '';
+            document.getElementById('blogCategory').value = 'land-management';
+            document.getElementById('blogAuthor').value = '';
+            document.getElementById('htmlEditor').value = `<h3>Sample Blog Post</h3>
+<p>Write your blog content here using HTML tags.</p>
+<p>You can include:</p>
+<ul>
+  <li>Lists</li>
+  <li>Links: <a href="#">example link</a></li>
+  <li>Images: <img src="image.jpg" alt="description"></li>
+</ul>`;
+            document.getElementById('previewPanel').style.display = 'none';
+            document.querySelector('.panel h2').textContent = 'Create/Edit Blog Post';
+        }
+
+        function loadBlogs() {
+            const blogList = document.getElementById('blogList');
+            blogList.innerHTML = '';
+
+            if (blogs.length === 0) {
+                blogList.innerHTML = '<p>No blogs published yet.</p>';
+                return;
+            }
+
+            blogs.sort((a, b) => new Date(b.dateModified) - new Date(a.dateModified));
+
+            blogs.forEach(blog => {
+                const blogItem = document.createElement('div');
+                blogItem.className = 'blog-item';
+                blogItem.innerHTML = `
+                    <div class="blog-meta">
+                        <h4>${blog.title}</h4>
+                        <span class="blog-stats">${blog.views} views | ${blog.reads} reads</span>
+                    </div>
+                    <p><strong>Category:</strong> ${blog.category}</p>
+                    <p><strong>Author:</strong> ${blog.author}</p>
+                    <p><strong>Created:</strong> ${new Date(blog.dateCreated).toLocaleDateString()}</p>
+                    <p><strong>Modified:</strong> ${new Date(blog.dateModified).toLocaleDateString()}</p>
+                    <div class="blog-actions">
+                        <button class="btn-warning" onclick="editBlog('${blog.id}')">Edit</button>
+                        <button class="btn-primary" onclick="viewBlog('${blog.id}')">View</button>
+                        <button class="btn-danger" onclick="deleteBlog('${blog.id}')">Delete</button>
+                    </div>
+                `;
+                blogList.appendChild(blogItem);
+            });
+        }
+
+        function viewBlog(id) {
+            const blog = blogs.find(b => b.id === id);
+            if (!blog) return;
+
+            // Create temporary HTML file for viewing
+            createBlogFile(blog);
+        }
+
+        function updateStats() {
+            const totalBlogs = blogs.length;
+            const totalViews = blogs.reduce((sum, blog) => sum + (blog.views || 0), 0);
+            const totalReads = blogs.reduce((sum, blog) => sum + (blog.reads || 0), 0);
+
+            document.getElementById('totalBlogs').textContent = totalBlogs;
+            document.getElementById('totalViews').textContent = totalViews;
+            document.getElementById('totalReads').textContent = totalReads;
+        }
+
+        function logout() {
+            window.location.href = 'index.html';
+        }
+
+        // Make functions global
+        window.editBlog = editBlog;
+        window.deleteBlog = deleteBlog;
+        window.viewBlog = viewBlog;
+    </script>
+</body>
+</html>
